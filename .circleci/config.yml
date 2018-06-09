@@ -1,0 +1,39 @@
+version: 2
+jobs:
+    build:
+      working_directory: ~/jtendermint/rpc-json-tools
+
+      docker:
+      - image: circleci/openjdk:8-jdk-browsers
+
+      steps:
+        - checkout
+
+        - restore_cache:
+            key: rpc-json-tools-{{ checksum "pom.xml" }}
+
+        - run: mvn dependency:go-offline
+
+        - save_cache:
+            paths:
+              - ~/.m2
+            key: rpc-json-tools-{{ checksum "pom.xml" }}
+  
+        - run: mvn package
+
+        - store_test_results:
+            path: target/surefire-reports
+
+#dependencies:
+#  pre:
+#    - mkdir -p ~/.gnupg
+#    - cp gpg/pubring.gpg ~/.gnupg/pubring.gpg
+#    - openssl aes-256-cbc -d -in gpg/secret -k $SIGN_SECRET >> ~/.gnupg/secring.gpg
+#  override:
+#    - mvn clean install dependency:resolve-plugins dependency:go-offline
+#
+#deployment:
+#  main:
+#    branch: master
+#    commands:
+#      - mvn -P release -s .circleci.settings.xml -DskipTests deploy -Dgpg.passphrase=$GPG_PASSPHRASE
